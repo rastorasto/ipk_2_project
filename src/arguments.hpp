@@ -3,7 +3,7 @@
 #include <iostream>
 
 struct arguments {
-    bool transport_protocol; // 0 is UDP, 1 is TCP
+    std::string transport_protocol;
     std::string address;
     uint16_t port = 4567;
     uint16_t timeout = 250; // in milliseconds
@@ -11,5 +11,6 @@ struct arguments {
 
     void help() const;
     arguments(int argc, char* argv[]);
+    void resolve_address();
     void print_args() const;
 };
