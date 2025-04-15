@@ -11,10 +11,13 @@ struct tcp_client {
 
     void tcp_connect();
     void tcp_disconnect();
-    void send(const std::string& message);
-    std::string receive();
-
-private:
+    void tcp_send(const std::string& message);
+    std::string tcp_receive();
+    void set_display_name(const std::string& display_name);
+    std::string get_display_name() const;
     int sock;
+
+    private:
     struct sockaddr_in address_struct;
+    std::string display_name;
 };

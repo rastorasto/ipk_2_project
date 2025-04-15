@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 
-tcp_client::tcp_client(const std::string& address, int port) {
+tcp_client::tcp_client(const std::string& address, int port) : display_name("") {
     printf_debug("Creating TCP client\n");
     sock = socket(AF_INET, SOCK_STREAM, 0);
     printf_debug("Socket created\n");
@@ -21,6 +21,8 @@ tcp_client::tcp_client(const std::string& address, int port) {
     address_struct.sin_port = htons(port);
     inet_pton(AF_INET, address.c_str(), &address_struct.sin_addr);
     printf_debug("Address structure set up\n");
+
+
 }
 
 void tcp_client::tcp_connect() {
@@ -37,6 +39,33 @@ void tcp_client::tcp_disconnect() {
         throw std::runtime_error("Failed to disconnect from server");
     }
     printf_debug("Disconnected from server\n");
+}
+
+void tcp_client::tcp_send(const std::string& message) {
+    printf_debug("Sending message %s to server", message.c_str());
+    if (send(sock, message.c_str(), message.size(), 0) == -1) {
+        throw std::runtime_error("Failed to send message to server");
+    }
+    printf_debug("Message sent to server\n");
+}
+
+std::string tcp_client::tcp_receive() {
+    printf_debug("Receiving message from server\n");
+    char buffer[1024];
+    ssize_t bytes_received = recv(sock, buffer, sizeof(buffer), 0);
+    if (bytes_received == -1) {
+        throw std::runtime_error("Failed to receive message from server");
+    }
+    printf_debug("Message %s received from server\n", buffer);
+    return std::string(buffer, bytes_received);
+}
+
+std::string tcp_client::get_display_name() const {
+    return display_name;
+}
+
+void tcp_client::set_display_name(const std::string& name) {
+    display_name = name;
 }
 
 tcp_client::~tcp_client() {
