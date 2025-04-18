@@ -50,8 +50,8 @@ arguments::arguments(int argc, char* argv[]) {
             }
         } else if (arg == "-r") {
             if (i + 1 < argc) {
-                printf_debug("Setting max retries to %s\n", argv[++i]);
-                max_retries = std::stoi(argv[i]);
+                max_retries = std::stoi(argv[++i]);
+                printf_debug("Setting max retries to %s\n", argv[i]);
             }
         } else if (arg == "-h") {
             help();
@@ -60,6 +60,9 @@ arguments::arguments(int argc, char* argv[]) {
             std::cerr << "Error: Invalid argument. Use -h for help.\n";
             exit(1);
         }
+    }
+    if(transport_protocol.empty() || address.empty()) {
+        throw std::invalid_argument("Missing arguments. Use -h for help.");
     }
 }
 

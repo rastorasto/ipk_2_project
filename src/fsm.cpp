@@ -6,7 +6,20 @@
 #include "macro.hpp"
 #include "tcpclient.hpp"
 
-FSM::FSM(tcp_client& client) : client(client), state(std::make_unique<Start_State>()){}
+// #include <signal.h>
+#include <csignal>
+
+const size_t MAX_MESSAGE_LENGTH = 60000;
+FSM* FSM::fsm_instance = nullptr;
+
+FSM::FSM(tcp_client& client) : client(client), state(std::make_unique<Start_State>()){
+    fsm_instance = this;
+    // Initialize signal handling for SIGINT
+    std::signal(SIGINT, [](int signal_number) {
+        (void)signal_number;
+        fsm_instance->handle_sigint();
+    });
+}
 
 void FSM::process_client_input(const std::string& input) {
     state->process_input(*this, input);
@@ -18,7 +31,44 @@ void FSM::process_server_response(const std::string& response) {
 
 void FSM::change_state(std::unique_ptr<State> new_state) {
     printf_debug("Changing state from %s to %s", state->name().c_str(), new_state->name().c_str());
+
     state = std::move(new_state);
+
+    // End_State has separate function exit
+    if(state->name()== "End_State"){
+        state->process_input(*this, "");
+    }
+}
+
+void FSM::handle_sigint() {
+    printf_debug("Received SIGINT");
+    change_state(std::make_unique<End_State>());
+}
+
+std::string State::create_msg_message(std::string display_name, std::string message_content) const{
+
+    if (message_content.size() > MAX_MESSAGE_LENGTH) {
+        message_content = message_content.substr(0, MAX_MESSAGE_LENGTH);
+    }
+
+    std::ostringstream token_stream;
+    token_stream << "MSG FROM " << display_name << " IS " << message_content << "\r\n";
+    return token_stream.str();
+}
+
+std::string State::create_auth_message(std::string username, std::string display_name, std::string secret) const{
+    std::ostringstream token_stream;
+    token_stream << "AUTH " << username << " AS " << display_name << " USING " << secret << "\r\n";
+    return token_stream.str();
+}
+
+std::string State::create_join_message(std::string display_name, std::string channel_name) const{
+
+    std::ostringstream token_stream;
+    token_stream << "JOIN " << channel_name << " AS " << display_name << "\r\n";
+    std::string token = token_stream.str();
+    printf_debug("Sending Token %s to Server", token.c_str());
+    return token;
 }
 
 // ------------ Start_State ------------
@@ -34,18 +84,20 @@ void Start_State::process_input(FSM& fsm, const std::string& input) {
     if (command == "/auth") {
         std::string username, secret, display_name;
         iss >> username >> secret >> display_name;
+
+        std::string leftover;
+            iss >> leftover;
+        if (!leftover.empty()) {
+            printf_debug("Invalid display name — too many arguments.");
+            std::cout<< "Error: Too many arguments" << std::endl;
+            return;
+        }
+
         fsm.client.set_display_name(display_name);
 
-        printf_debug("Username: %s", username.c_str());
-        printf_debug("Secret: %s", secret.c_str());
-        printf_debug("Display Name: %s", display_name.c_str());
+        std::string token = create_auth_message(username, display_name, secret);
 
-        std::ostringstream token_stream;
-        token_stream << "AUTH " << username << " AS " << fsm.client.get_display_name() << " USING " << secret << "\r\n";
-        std::string token = token_stream.str();
-        printf_debug("Token: %s", token.c_str());
         fsm.client.tcp_send(token);
-        printf_debug("Token sent to server");
 
         fsm.change_state(std::make_unique<Auth_State>());
     } else if (command == "/bye") {
@@ -125,31 +177,28 @@ void Open_State::process_input(FSM& fsm, const std::string& input) {
 
     printf_debug("Command: %s", command.c_str());
 
-    if(command == "/msg"){ // MSG
-        std::string message_content;
-        std::getline(iss, message_content);
-
-        std::ostringstream token_stream;
-        token_stream << "MSG FROM " << fsm.client.get_display_name() << " IS " << message_content << "\r\n";
-        std::string token = token_stream.str();
-        printf_debug("Sending Token %s to Server", token.c_str());
-        fsm.client.tcp_send(token);
-
-    } else if (command == "/join") { // JOIN
+    if (command == "/join") { // JOIN
         std::string channel_name;
         iss >> channel_name;
 
-        std::ostringstream token_stream;
-        token_stream << "JOIN " << channel_name << " AS " << fsm.client.get_display_name() << "\r\n";
-        std::string token = token_stream.str();
-        printf_debug("Sending Token %s to Server", token.c_str());
+        std::string left_over;
+        iss >> left_over;
+        if(!left_over.empty()){
+            std::cout << "Error: Invalid channel name" << std::endl;
+            return;
+        }
+
+        std::string token = create_join_message(fsm.client.get_display_name(), channel_name);
+
         fsm.client.tcp_send(token);
 
         fsm.change_state(std::make_unique<Join_State>());
     } else if (command == "/bye") {
         fsm.change_state(std::make_unique<End_State>());
     } else {
-        printf_debug("Invalid command");
+        std::string token = create_msg_message(fsm.client.get_display_name(), input);
+        printf_debug("Sending Token %s to Server", token.c_str());
+        fsm.client.tcp_send(token);
     }
 }
 
@@ -250,6 +299,7 @@ void Join_State::process_response(FSM& fsm, const std::string& response) {
         if(is_keyword != "IS"){
             printf_debug("Invalid grammar");
         }
+
         std::string message_content;
         std::getline(iss, message_content);
         std::cout << name << ": " << message_content << std::endl;
@@ -266,7 +316,7 @@ void Join_State::process_response(FSM& fsm, const std::string& response) {
             std::getline(iss, message_content);
             std::cout << "Action Success:" << message_content << std::endl;
             fsm.change_state(std::make_unique<Open_State>());
-        } else if(status == "ERROR"){
+        } else if(status == "ERROR"){ // this should be NOK right? todo handle in fucntions
             std::string is_keyword;
             iss >> is_keyword;
             if(is_keyword != "IS"){
@@ -302,6 +352,7 @@ void End_State::process_input(FSM& fsm, const std::string& input) {
     fsm.client.tcp_send(bye_stream.str());
     printf_debug("Bye sent");
     // todo handle quiting
+    write(fsm.client.pipe_fds[1], "x", 1);
 }
 
 void End_State::process_response(FSM& fsm, const std::string& response) {
@@ -309,6 +360,7 @@ void End_State::process_response(FSM& fsm, const std::string& response) {
     printf_debug("Processing response in End State"); // todo there should not be anything to process here
     printf_debug("Response: %s", response.c_str());
     // todo handle quitting
+    write(fsm.client.pipe_fds[1], "x", 1);
 }
 
 std::string End_State::name() const {

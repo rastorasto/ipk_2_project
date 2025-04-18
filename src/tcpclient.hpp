@@ -15,9 +15,10 @@ struct tcp_client {
     std::string tcp_receive();
     void set_display_name(const std::string& display_name);
     std::string get_display_name() const;
-    int sock;
 
-    private:
+    int sock;
+    int pipe_fds[2];
+private:
     struct sockaddr_in address_struct;
     std::string display_name;
 };

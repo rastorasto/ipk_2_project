@@ -15,6 +15,11 @@ tcp_client::tcp_client(const std::string& address, int port) : display_name("") 
     if (sock == -1) {
         throw std::runtime_error("Failed to create socket");
     }
+    int opt = 1;
+        if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+            throw std::runtime_error("Failed to set SO_REUSEADDR");
+    }
+    printf_debug("SO_REUSEADDR set on socket\n");
 
     printf_debug("Setting up address structure\n");
     address_struct.sin_family = AF_INET;
@@ -23,6 +28,10 @@ tcp_client::tcp_client(const std::string& address, int port) : display_name("") 
     printf_debug("Address structure set up\n");
 
 
+
+    if (pipe(pipe_fds) == -1) {
+        throw std::runtime_error("Failed to create pipe");
+    }
 }
 
 void tcp_client::tcp_connect() {
