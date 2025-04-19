@@ -1,5 +1,6 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic -I src -lpcap -g
+# todo comment debug print flag before submission
+CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic -I src -lpcap -g -DDEBUG_PRINT
 SRC_DIR := src
 OBJ_DIR := obj
 TEST_DIR := tests

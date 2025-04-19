@@ -1,4 +1,3 @@
-#define DEBUG_PRINT // todo remove before submission
 #include "macro.hpp"
 
 #include "tcpclient.hpp"
@@ -7,17 +6,20 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <sstream>
 
-tcp_client::tcp_client(const std::string& address, int port) : display_name("") {
+tcp_client::tcp_client(const std::string& address, int port) : display_name("unknown"){
     printf_debug("Creating TCP client\n");
     sock = socket(AF_INET, SOCK_STREAM, 0);
     printf_debug("Socket created\n");
     if (sock == -1) {
         throw std::runtime_error("Failed to create socket");
     }
+
+    // todo setting reuse address is not needed, operating system can choose any address to connect to the server but leaving it won't hurt i guess
     int opt = 1;
-        if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-            throw std::runtime_error("Failed to set SO_REUSEADDR");
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        throw std::runtime_error("Failed to set SO_REUSEADDR");
     }
     printf_debug("SO_REUSEADDR set on socket\n");
 
@@ -78,5 +80,10 @@ void tcp_client::set_display_name(const std::string& name) {
 }
 
 tcp_client::~tcp_client() {
+    printf_debug("Sending Bye");
+    std::ostringstream bye_stream;
+    bye_stream << "BYE FROM " << get_display_name() << "\r\n";
+    tcp_send(bye_stream.str());
+    printf_debug("Bye sent");
     tcp_disconnect();
 }
