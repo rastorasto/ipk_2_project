@@ -55,7 +55,7 @@ struct FSM {
     void process_server_response(const std::string& response);
     void change_state(std::unique_ptr<State> new_state);
 
-    void handle_sigint();
+    void handle_bye();
 
     tcp_client& client;
 private:
