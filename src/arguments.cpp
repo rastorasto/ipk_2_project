@@ -1,10 +1,7 @@
 #include "arguments.hpp"
-//#include <ifaddrs.h>
-//#include <net/if.h> // todo remove works without them
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#define DEBUG_PRINT
 #include "macro.hpp"
 
 
