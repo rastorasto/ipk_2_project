@@ -1,4 +1,3 @@
-#define DEBUG_PRINT // todo remove before submission
 #include "macro.hpp"
 
 #include "ipk25chat-client.hpp"
@@ -18,7 +17,6 @@ int main(int argc, char* argv[]) {
     arguments args(argc, argv);
 
     args.resolve_address();
-    // args.print_args();
 
     tcp_client client(args.address, args.port);
     client.tcp_connect();
@@ -58,6 +56,7 @@ int main(int argc, char* argv[]) {
                 fsm.process_client_input(input);
             } else {
                 std::cout << "End of user input." << std::endl;
+                fsm.handle_bye();
                 break;
             }
         }
