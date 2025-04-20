@@ -67,6 +67,8 @@ std::string tcp_client::tcp_receive() {
     if (bytes_received == -1) {
         throw std::runtime_error("Failed to receive message from server");
     }
+
+    // This buffer is for when the message is not ended with \r\n therefore it is segmented
     recv_buffer.append(buffer, bytes_received);
     if (!recv_buffer.ends_with("\r\n")) {
         return "";
@@ -84,6 +86,7 @@ void tcp_client::set_display_name(const std::string& name) {
     display_name = name;
 }
 
+// Sends bye message on destruction
 tcp_client::~tcp_client() {
     printf_debug("Sending Bye");
     std::ostringstream bye_stream;

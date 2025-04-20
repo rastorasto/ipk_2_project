@@ -8,6 +8,7 @@
 // Forward declaration of FSM
 struct FSM;
 
+// Base class
 struct State {
     virtual void process_input(FSM& fsm, const std::string& input) = 0;
     virtual void process_response(FSM& fsm, const std::string& response) = 0;
@@ -25,6 +26,7 @@ struct Start_State : State {
     std::string name() const override;
 };
 
+// Here the base class is Start_State because i needed an unique pointer to Start_State i was not able to make it point to a purely virtual class State
 struct Auth_State : Start_State {
     void process_input(FSM& fsm, const std::string& input) override;
     void process_response(FSM& fsm, const std::string& response) override;

@@ -20,20 +20,23 @@ FSM::FSM(tcp_client& client) : client(client), state(std::make_unique<Start_Stat
     });
 }
 
+// Calls the current state's process_input method
 void FSM::process_client_input(const std::string& input) {
     state->process_input(*this, input);
 }
 
+// Calls the current state's process_response method
 void FSM::process_server_response(const std::string& response) {
     state->process_response(*this, response);
 }
 
+// Changes the current state to a new one
 void FSM::change_state(std::unique_ptr<State> new_state) {
     printf_debug("Changing state from %s to %s", state->name().c_str(), new_state->name().c_str());
 
     state = std::move(new_state);
 
-    // End_State has separate function exit
+    // If the new state is End_State it is not expected to receive user or server input therefore I call the process_input method directly
     if(state->name()== "End_State"){
         state->process_input(*this, "");
     }
@@ -41,18 +44,13 @@ void FSM::change_state(std::unique_ptr<State> new_state) {
 
 void FSM::handle_bye() {
     printf_debug("Received sigint or error");
-    // bye is sent in tcp_client destructor
-    // printf_debug("Sending Bye");
-    // std::ostringstream bye_stream;
-    // bye_stream << "BYE FROM " << client.get_display_name() << "\r\n";
-    // client.tcp_send(bye_stream.str());
-    // printf_debug("Bye sent");
     change_state(std::make_unique<End_State>());
 }
 
+// Function for creating a message
 std::string State::create_msg_message(std::string display_name, std::string message_content) const{
 
-    if (message_content.size() > MAX_MESSAGE_LENGTH) {
+    if (message_content.size() > MAX_MESSAGE_LENGTH) { // Checks the length of the message content, if it is greater it is cut off
         message_content = message_content.substr(0, MAX_MESSAGE_LENGTH);
     }
 
@@ -61,12 +59,14 @@ std::string State::create_msg_message(std::string display_name, std::string mess
     return token_stream.str();
 }
 
+// Creates an authentication message
 std::string State::create_auth_message(std::string username, std::string display_name, std::string secret) const{
     std::ostringstream token_stream;
     token_stream << "AUTH " << username << " AS " << display_name << " USING " << secret << "\r\n";
     return token_stream.str();
 }
 
+// Creates a join message
 std::string State::create_join_message(std::string display_name, std::string channel_name) const{
 
     std::ostringstream token_stream;
@@ -78,6 +78,7 @@ std::string State::create_join_message(std::string display_name, std::string cha
 
 // ------------ Start_State ------------
 
+// Processes user input in the Start_State
 void Start_State::process_input(FSM& fsm, const std::string& input) {
     printf_debug("Processing input in Start State");
     std::istringstream iss(input);
@@ -85,6 +86,7 @@ void Start_State::process_input(FSM& fsm, const std::string& input) {
     iss >> command;
     printf_debug("Input %s", input.c_str());
     printf_debug("Command %s received", command.c_str());
+
 
     if (command == "/auth") {
         std::string username, secret, display_name;
@@ -121,6 +123,7 @@ void Start_State::process_input(FSM& fsm, const std::string& input) {
     }
 }
 
+// Processes server response in the Start_State
 void Start_State::process_response(FSM& fsm, const std::string& response) {
     printf_debug("Processing response in Start State");
     printf_debug("Response: %s", response.c_str());
@@ -169,6 +172,7 @@ std::string Start_State::name() const {
 
 // ------------ Auth_State ------------
 
+// Processes user input in the Auth_State
 void Auth_State::process_input(FSM& fsm, const std::string& input) {
     printf_debug("Processing input in Auth State");
 
@@ -211,6 +215,7 @@ void Auth_State::process_input(FSM& fsm, const std::string& input) {
     }
 }
 
+// Processes server response in the Auth_State
 void Auth_State::process_response(FSM& fsm, const std::string& response) {
     printf_debug("Processing response in Auth State");
     printf_debug("Response: %s", response.c_str());
@@ -302,6 +307,7 @@ std::string Auth_State::name() const {
 
 // ----------- Open_State ------------
 
+// Processes user input in the Open_State
 void Open_State::process_input(FSM& fsm, const std::string& input) {
     printf_debug("Processing input in Open State");
 
@@ -359,6 +365,7 @@ void Open_State::process_input(FSM& fsm, const std::string& input) {
     }
 }
 
+// Processes server response in the Open_State
 void Open_State::process_response(FSM& fsm, const std::string& response) {
     printf_debug("Processing response in Open State");
     printf_debug("Response: %s", response.c_str());
@@ -489,6 +496,7 @@ std::string Open_State::name() const {
 
 // ----------- Join_State ------------
 
+// Processes user input in the Join_State
 void Join_State::process_input(FSM& fsm, const std::string& input) {
     printf_debug("Processing input in Join State");
     std::istringstream iss(input);
@@ -503,6 +511,7 @@ void Join_State::process_input(FSM& fsm, const std::string& input) {
     }
 }
 
+// Processes server response in the Join_State
 void Join_State::process_response(FSM& fsm, const std::string& response) {
     printf_debug("Processing response in Join State");
     printf_debug("Response: %s", response.c_str());
@@ -610,6 +619,7 @@ std::string Join_State::name() const {
 
 // ------------ End_State ------------
 
+// This is implemented because in base class State it is a virtual method
 void End_State::process_input(FSM& fsm, const std::string& input) {
     (void)input; // input is not used here
     printf_debug("Processing input in End State");
@@ -617,6 +627,7 @@ void End_State::process_input(FSM& fsm, const std::string& input) {
     write(fsm.client.pipe_fds[1], "x", 1);
 }
 
+// This is called directly because input is not processed in end state
 void End_State::process_response(FSM& fsm, const std::string& response) {
     (void)fsm; // not used here
     printf_debug("Response: %s", response.c_str());
