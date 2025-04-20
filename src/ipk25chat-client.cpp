@@ -1,6 +1,5 @@
 #include "macro.hpp"
 
-#include "ipk25chat-client.hpp"
 #include "arguments.hpp"
 #include "tcpclient.hpp"
 #include "fsm.hpp"

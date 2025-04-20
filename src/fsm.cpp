@@ -286,7 +286,7 @@ void Auth_State::process_response(FSM& fsm, const std::string& response) {
 
         fsm.change_state(std::make_unique<End_State>());
     } else {
-        printf_debug("Auth state else should not get here"); // todo delete or smth
+        printf_debug("Auth state else should not get here");
         std::cout << "ERROR: Invalid message received from the server" << std::endl;
         std::ostringstream error_message;
         error_message << "ERR FROM " << fsm.client.get_display_name() << " IS " << "Missing or malformed ERR message." << "\r\n";
@@ -351,7 +351,7 @@ void Open_State::process_input(FSM& fsm, const std::string& input) {
     std::cout << "After authentication any message that does not start with commands displayed above will be sent as message" << std::endl;
     } else if (command == "/auth"){
         std::cout << "ERROR: Already authenticated" << std::endl;
-        fsm.handle_bye(); // todo maybe just write the error and dont quit?
+        fsm.handle_bye();
     } else { // msg
         std::string token = create_msg_message(fsm.client.get_display_name(), input);
         printf_debug("Sending Token %s to Server", token.c_str());
@@ -388,12 +388,13 @@ void Open_State::process_response(FSM& fsm, const std::string& response) {
             std::transform(is_keyword.begin(), is_keyword.end(), is_keyword.begin(), ::toupper);
             if (tag != "MSG" || from_keyword != "FROM" || is_keyword != "IS") {
                 printf_debug("Invalid grammar");
+                std::cout << "ERROR: Received message with invalid grammar" << std::endl;
                 continue;
             }
             std::getline(iss >> std::ws, message_content);
             std::cout << name << ": " << message_content << std::endl;
         }
-    } else if(fsm_name == "REPLY"){ // *REPLY / ERR todo send err to the server ?
+    } else if(fsm_name == "REPLY"){ // *REPLY / ERR
 
         std::string status;
         iss >> status;
@@ -403,7 +404,8 @@ void Open_State::process_response(FSM& fsm, const std::string& response) {
             iss >> is_keyword;
             std::transform(is_keyword.begin(), is_keyword.end(), is_keyword.begin(), ::toupper);
             if(is_keyword != "IS"){
-                printf_debug("Invalid grammar"); // todo should not happen but just to be sure
+                printf_debug("Invalid grammar"); // should not happen but just to be sure
+                std::cout << "ERROR: Received message with invalid grammar" << std::endl;
             }
             std::string message_content;
             std::getline(iss >> std::ws, message_content);
@@ -421,6 +423,7 @@ void Open_State::process_response(FSM& fsm, const std::string& response) {
             std::transform(is_keyword.begin(), is_keyword.end(), is_keyword.begin(), ::toupper);
             if(is_keyword != "IS"){
                 printf_debug("Invalid grammar"); // should not happen but just to be sure
+                std::cout << "ERROR: Received message with invalid grammar" << std::endl;
             }
             std::string message_content;
             std::getline(iss >> std::ws, message_content);
@@ -445,7 +448,8 @@ void Open_State::process_response(FSM& fsm, const std::string& response) {
         std::transform(from_keyword.begin(), from_keyword.end(), from_keyword.begin(), ::toupper);
         std::transform(is_keyword.begin(), is_keyword.end(), is_keyword.begin(), ::toupper);
         if(from_keyword != "FROM" || is_keyword != "IS"){
-            printf_debug("Invalid grammar"); //todo maybe print error to the user ?
+            printf_debug("Invalid grammar");
+            std::cout << "ERROR: Received message with invalid grammar" << std::endl;
         }
         std::string message_content;
         std::getline(iss >> std::ws, message_content);
@@ -462,6 +466,7 @@ void Open_State::process_response(FSM& fsm, const std::string& response) {
         std::transform(from_keyword.begin(), from_keyword.end(), from_keyword.begin(), ::toupper);
         if(from_keyword != "FROM"){
             printf_debug("Invalid grammar");
+            std::cout << "ERROR: Received message with invalid grammar" << std::endl;
         }
         std::string name;
         iss >> name;
@@ -573,6 +578,7 @@ void Join_State::process_response(FSM& fsm, const std::string& response) {
         std::transform(is_keyword.begin(), is_keyword.end(), is_keyword.begin(), ::toupper);
         if(from_keyword != "FROM" || is_keyword != "IS"){
             printf_debug("Invalid grammar");
+            std::cout << "ERROR: Received message with invalid grammar" << std::endl;
         }
         std::string message_content;
         std::getline(iss >> std::ws, message_content);

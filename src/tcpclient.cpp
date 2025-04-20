@@ -16,7 +16,7 @@ tcp_client::tcp_client(const std::string& address, int port) : display_name("unk
         throw std::runtime_error("Failed to create socket");
     }
 
-    // todo setting reuse address is not needed, operating system can choose any address to connect to the server but leaving it won't hurt i guess
+    // setting reuse address is not needed, operating system can choose any address to connect to the server but leaving it won't hurt i guess
     int opt = 1;
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
         throw std::runtime_error("Failed to set SO_REUSEADDR");
