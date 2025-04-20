@@ -112,7 +112,7 @@ void Start_State::process_input(FSM& fsm, const std::string& input) {
         std::cout << "Available commands:" << std::endl;
         std::cout << "Use to authenticate /auth <username> <display_name> <secret>" << std::endl;
         std::cout << "Use to disconnect from the server /bye " << std::endl;
-        std::cout << "Use to show this help/help" << std::endl;
+        std::cout << "Use to show this help /help" << std::endl;
         std::cout << "You can also disconnect by pressing Ctrl+C" << std::endl;
         std::cout << "After authentication any message that does not start with commands displayed above will be sent as message" << std::endl;
     } else {
@@ -202,7 +202,7 @@ void Auth_State::process_input(FSM& fsm, const std::string& input) {
         std::cout << "Available commands:" << std::endl;
         std::cout << "Use to authenticate /auth <username> <display_name> <secret>" << std::endl;
         std::cout << "Use to disconnect from the server /bye " << std::endl;
-        std::cout << "Use to show this help/help" << std::endl;
+        std::cout << "Use to show this help /help" << std::endl;
         std::cout << "You can also disconnect by pressing Ctrl+C" << std::endl;
         std::cout << "After authentication any message that does not start with commands displayed above will be sent as message" << std::endl;
     } else {
@@ -346,7 +346,7 @@ void Open_State::process_input(FSM& fsm, const std::string& input) {
     std::cout << "Available commands:" << std::endl;
     std::cout << "Use to authenticate /auth <username> <display_name> <secret>" << std::endl;
     std::cout << "Use to disconnect from the server /bye " << std::endl;
-    std::cout << "Use to show this help/help" << std::endl;
+    std::cout << "Use to show this help /help" << std::endl;
     std::cout << "You can also disconnect by pressing Ctrl+C" << std::endl;
     std::cout << "After authentication any message that does not start with commands displayed above will be sent as message" << std::endl;
     } else if (command == "/auth"){
