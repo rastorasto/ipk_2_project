@@ -172,8 +172,6 @@ std::string Start_State::name() const {
 void Auth_State::process_input(FSM& fsm, const std::string& input) {
     printf_debug("Processing input in Auth State");
 
-    fsm.change_state(std::make_unique<Open_State>());
-
     std::istringstream iss(input);
     std::string command;
     iss >> command;
@@ -240,7 +238,6 @@ void Auth_State::process_response(FSM& fsm, const std::string& response) {
             fsm.change_state(std::make_unique<Open_State>());
         } else if (status == "NOK"){
             std::cout << "Action Failure: " << message_content << std::endl;
-            // fsm.client.tcp_send(fsm.client.get_auth_token()); // if !REPLY sends the auth again
         }
         else {
             printf_debug("Should never get here"); // I will leave it here just to be sure but server should always respond with either OK or NOK as written in the assignment (REPLY {"OK"|"NOK"} IS {MessageContent}\r\n)
@@ -282,7 +279,7 @@ void Auth_State::process_response(FSM& fsm, const std::string& response) {
         std::string message_content;
         std::getline(iss >> std::ws, message_content);
         std::cout << "MSG FROM " << name << ": " << message_content << std::endl;
-        std::cout << "ERROR: Message received in auth state"; // todo check what output format this should be
+        std::cout << "ERROR: Message received in auth state" << std::endl;
         std::ostringstream error_message;
         error_message << "ERR FROM " << fsm.client.get_display_name() << " IS " << "Message received in auth state." << "\r\n";
         fsm.client.tcp_send(error_message.str());
@@ -354,7 +351,7 @@ void Open_State::process_input(FSM& fsm, const std::string& input) {
     std::cout << "After authentication any message that does not start with commands displayed above will be sent as message" << std::endl;
     } else if (command == "/auth"){
         std::cout << "ERROR: Already authenticated" << std::endl;
-        fsm.handle_bye();
+        fsm.handle_bye(); // todo maybe just write the error and dont quit?
     } else { // msg
         std::string token = create_msg_message(fsm.client.get_display_name(), input);
         printf_debug("Sending Token %s to Server", token.c_str());
@@ -397,6 +394,7 @@ void Open_State::process_response(FSM& fsm, const std::string& response) {
             std::cout << name << ": " << message_content << std::endl;
         }
     } else if(fsm_name == "REPLY"){ // *REPLY / ERR todo send err to the server ?
+
         std::string status;
         iss >> status;
         std::transform(status.begin(), status.end(), status.begin(), ::toupper); // Capitalizing status because grammar is case insensitive
@@ -412,19 +410,25 @@ void Open_State::process_response(FSM& fsm, const std::string& response) {
             if (!message_content.empty() && message_content.back() == '\r') {
                 message_content.pop_back();
             }
-            std::cout << "Action Success: " << message_content << std::endl;
+            std::cout << "ERROR: Message received in auth state";
+            std::ostringstream error_message;
+            error_message << "ERR FROM " << fsm.client.get_display_name() << " IS " << "Reply received in open state." << "\r\n";
+            fsm.client.tcp_send(error_message.str());
             fsm.change_state(std::make_unique<End_State>());
         } else if(status == "NOK"){
             std::string is_keyword;
             iss >> is_keyword;
             std::transform(is_keyword.begin(), is_keyword.end(), is_keyword.begin(), ::toupper);
             if(is_keyword != "IS"){
-                printf_debug("Invalid grammar"); // todo should not happen but just to be sure
+                printf_debug("Invalid grammar"); // should not happen but just to be sure
             }
             std::string message_content;
             std::getline(iss >> std::ws, message_content);
-            // Action Failure: {MessageContent}\n
-            std::cout << "Action Failure: " << message_content << std::endl;
+            std::cout << "ERROR: Message received in auth state";
+            std::ostringstream error_message;
+            error_message << "ERR FROM " << fsm.client.get_display_name() << " IS " << "Reply received in open state." << "\r\n";
+            fsm.client.tcp_send(error_message.str());
+
             fsm.change_state(std::make_unique<End_State>());
         } else {
             std::cout << "ERROR: Invalid status " << status << std::endl;
@@ -515,7 +519,7 @@ void Join_State::process_response(FSM& fsm, const std::string& response) {
         std::transform(is_keyword.begin(), is_keyword.end(), is_keyword.begin(), ::toupper);
         if(from_keyword != "FROM" || is_keyword != "IS"){
             printf_debug("Invalid grammar");
-            std::cout << "ERROR: Received message with invalid grammar";
+            std::cout << "ERROR: Received message with invalid grammar" << std::endl;
         }
         std::string message_content;
         std::getline(iss >> std::ws, message_content);
@@ -529,10 +533,13 @@ void Join_State::process_response(FSM& fsm, const std::string& response) {
             std::transform(is_keyword.begin(), is_keyword.end(), is_keyword.begin(), ::toupper);
             if(is_keyword != "IS"){
                 printf_debug("Invalid grammar");
-                std::cout << "ERROR: Received message with invalid grammar";
+                std::cout << "ERROR: Received message with invalid grammar" << std::endl;
             }
             std::string message_content;
             std::getline(iss >> std::ws, message_content);
+            if (!message_content.empty() && message_content.back() == '\r') {
+                message_content.pop_back();
+            }
             std::cout << "Action Success: " << message_content << std::endl;
             fsm.change_state(std::make_unique<Open_State>());
         } else if(status == "NOK"){
@@ -541,11 +548,13 @@ void Join_State::process_response(FSM& fsm, const std::string& response) {
             std::transform(is_keyword.begin(), is_keyword.end(), is_keyword.begin(), ::toupper);
             if(is_keyword != "IS"){
                 printf_debug("Invalid grammar");
-                std::cout << "ERROR: Received message with invalid grammar";
+                std::cout << "ERROR: Received message with invalid grammar" << std::endl;
             }
             std::string message_content;
             std::getline(iss >> std::ws, message_content);
-            // Action Failure: {MessageContent}\n
+            if (!message_content.empty() && message_content.back() == '\r') {
+                message_content.pop_back();
+            }
             std::cout << "Action Failure: " << message_content << std::endl;
             fsm.change_state(std::make_unique<Open_State>());
         } else {

@@ -67,8 +67,13 @@ std::string tcp_client::tcp_receive() {
     if (bytes_received == -1) {
         throw std::runtime_error("Failed to receive message from server");
     }
-    printf_debug("Message %s received from server\n", buffer);
-    return std::string(buffer, bytes_received);
+    recv_buffer.append(buffer, bytes_received);
+    if (!recv_buffer.ends_with("\r\n")) {
+        return "";
+    }
+    std::string message = std::move(recv_buffer);
+    recv_buffer.clear();
+    return message;
 }
 
 std::string tcp_client::get_display_name() const {

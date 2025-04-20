@@ -64,7 +64,9 @@ int main(int argc, char* argv[]) {
         if (FD_ISSET(client.sock, &read_fds)) {
             printf_debug("Reading server response");
             std::string response = client.tcp_receive();
-            fsm.process_server_response(response);
+            if(!response.empty()){
+                fsm.process_server_response(response);
+            }
         }
     }
 

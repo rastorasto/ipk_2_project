@@ -18,6 +18,7 @@ struct tcp_client {
 
     int sock;
     int pipe_fds[2];
+    std::string recv_buffer; // For handling segmented messages
 private:
     struct sockaddr_in address_struct;
     std::string display_name;

@@ -221,7 +221,7 @@ TEST_CASE("Authentication with NOK Reply", "[tcp_client]") {
     // Since State is an unique pointer in fsm I can't use get function to access the fsm state therefore i simulate the change by creating a new state and using the process_response function on it. I am sure there is a better way to do this but this works too.
     Auth_State auth_state;
 
-    server.send_message("REPLY NOK IS Authentication failed\n");
+    server.send_message("REPLY NOK IS Authentication failed\r\n");
 
     // redirect stdout
     std::stringstream output_capture;
@@ -333,6 +333,8 @@ TEST_CASE("Authenticated Message send and receive", "[tcp_client]") {
     std::cout.rdbuf(old_buf);
 }
 
+
+
 TEST_CASE("Grammar insensitivity", "[tcp_client]") {
     Server server(4567);
 
@@ -411,4 +413,234 @@ TEST_CASE("Received message in Auth_State", "[tcp_client]") {
     buffer = server.receive_message();
     REQUIRE(buffer == "ERR FROM unknown IS Message received in auth state.\r\n");
 
+}
+
+TEST_CASE("Received message from server missing \r\n", "[tcp_client]") {
+    Server server(4567);
+
+    tcp_client client("127.0.0.1", 4567);
+    client.tcp_connect();
+
+    FSM fsm(client);
+
+    server.accept_client();
+
+    Start_State state;
+    std::string auth = state.create_auth_message("test_username", "test_name", "test_secret");
+    client.tcp_send(auth);
+
+    std::string buffer = server.receive_message();
+
+    REQUIRE(buffer == "AUTH test_username AS test_name USING test_secret\r\n");
+
+    // Since State is an unique pointer in fsm I can't use get function to access the fsm state therefore i simulate the change by creating a new state and using the process_response function on it. I am sure there is a better way to do this but this works too.
+    Auth_State auth_state;
+
+    server.send_message("MSG FROM cat IS haha this message is not ended properly prrr");
+
+    std::string response = client.tcp_receive();
+    auth_state.process_response(fsm, response);
+
+    buffer = server.receive_message();
+    REQUIRE(buffer == "ERR FROM unknown IS Missing or malformed ERR message.\r\n");
+
+}
+
+TEST_CASE("Received message in 2 segments", "[tcp_client]") {
+    Server server(4567);
+
+    tcp_client client("127.0.0.1", 4567);
+    client.tcp_connect();
+
+    FSM fsm(client);
+
+    server.accept_client();
+
+    Start_State state;
+    std::string auth = state.create_auth_message("test_username", "test_name", "test_secret");
+    client.tcp_send(auth);
+
+    std::string buffer = server.receive_message();
+
+    REQUIRE(buffer == "AUTH test_username AS test_name USING test_secret\r\n");
+
+    // Since State is an unique pointer in fsm I can't use get function to access the fsm state therefore i simulate the change by creating a new state and using the process_response function on it. I am sure there is a better way to do this but this works too.
+    Auth_State auth_state;
+
+    server.send_message("REPLY OK IS ");
+    server.send_message("Authentication successful\r\n");
+    // redirect stdout
+    std::stringstream output_capture;
+    auto* old_buf = std::cout.rdbuf(output_capture.rdbuf());
+
+    std::string response = client.tcp_receive();
+    auth_state.process_response(fsm, response);
+
+    Open_State open_state;
+    std::string message = open_state.create_msg_message("test_username", "meeeow meow");
+    client.tcp_send(message);
+
+    buffer = server.receive_message();
+    REQUIRE(buffer == "MSG FROM test_username IS meeeow meow\r\n");
+
+    server.send_message("MSG FROM dog ");
+    server.send_message("IS haf haf\r\n");
+
+    response = client.tcp_receive();
+    response = client.tcp_receive();
+    open_state.process_response(fsm, response);
+
+    std::string output = output_capture.str();
+    REQUIRE(output == "Action Success: Authentication successful\ndog: haf haf\n");
+
+    // restore stdout
+    std::cout.rdbuf(old_buf);
+}
+
+TEST_CASE("Authenticated Join", "[tcp_client]") {
+    Server server(4567);
+
+    tcp_client client("127.0.0.1", 4567);
+    client.tcp_connect();
+
+    FSM fsm(client);
+
+    server.accept_client();
+
+    Start_State state;
+    std::string auth = state.create_auth_message("test_username", "test_name", "test_secret");
+    client.tcp_send(auth);
+
+    std::string buffer = server.receive_message();
+
+    REQUIRE(buffer == "AUTH test_username AS test_name USING test_secret\r\n");
+
+    // Since State is an unique pointer in fsm I can't use get function to access the fsm state therefore i simulate the change by creating a new state and using the process_response function on it. I am sure there is a better way to do this but this works too.
+    Auth_State auth_state;
+
+    server.send_message("REPLY OK IS Authentication successful\r\n");
+
+    // redirect stdout
+    std::stringstream output_capture;
+    auto* old_buf = std::cout.rdbuf(output_capture.rdbuf());
+
+    std::string response = client.tcp_receive();
+    auth_state.process_response(fsm, response);
+
+    Open_State open_state;
+    std::string message = open_state.create_join_message("test_username", "channel_for_cats");
+    client.tcp_send(message);
+
+    buffer = server.receive_message();
+    REQUIRE(buffer == "JOIN channel_for_cats AS test_username\r\n");
+
+    server.send_message("REPLY OK IS Hello fellow cat, welcome to our channel\r\n");
+    response = client.tcp_receive();
+    Join_State join_state;
+    join_state.process_response(fsm, response);
+
+    std::string output = output_capture.str();
+    REQUIRE(output == "Action Success: Authentication successful\nAction Success: Hello fellow cat, welcome to our channel\n");
+
+    // restore stdout
+    std::cout.rdbuf(old_buf);
+}
+
+TEST_CASE("Malformed join reply", "[tcp_client]") {
+    Server server(4567);
+
+    tcp_client client("127.0.0.1", 4567);
+    client.tcp_connect();
+
+    FSM fsm(client);
+
+    server.accept_client();
+
+    Start_State state;
+    std::string auth = state.create_auth_message("cat", "test_name", "test_secret");
+    client.tcp_send(auth);
+
+    std::string buffer = server.receive_message();
+
+    REQUIRE(buffer == "AUTH cat AS test_name USING test_secret\r\n");
+
+    // Since State is an unique pointer in fsm I can't use get function to access the fsm state therefore i simulate the change by creating a new state and using the process_response function on it. I am sure there is a better way to do this but this works too.
+    Auth_State auth_state;
+
+    server.send_message("REPLY OK IS Authentication successful\r\n");
+
+    // redirect stdout
+    std::stringstream output_capture;
+    auto* old_buf = std::cout.rdbuf(output_capture.rdbuf());
+
+    std::string response = client.tcp_receive();
+    auth_state.process_response(fsm, response);
+
+    Open_State open_state;
+    std::string message = open_state.create_join_message("cat", "channel_for_cats");
+    client.tcp_send(message);
+
+    buffer = server.receive_message();
+    REQUIRE(buffer == "JOIN channel_for_cats AS cat\r\n");
+
+    server.send_message("REPLY OK IS Hello fellow cat");
+    server.send_message(", welcome to our channel\r\n");
+    response = client.tcp_receive();
+    response = client.tcp_receive();
+    Join_State join_state;
+    join_state.process_response(fsm, response);
+
+    std::string output = output_capture.str();
+    REQUIRE(output == "Action Success: Authentication successful\nAction Success: Hello fellow cat, welcome to our channel\n");
+
+    // restore stdout
+    std::cout.rdbuf(old_buf);
+}
+
+TEST_CASE("Authenticated Join Error", "[tcp_client]") {
+    Server server(4567);
+
+    tcp_client client("127.0.0.1", 4567);
+    client.tcp_connect();
+
+    FSM fsm(client);
+
+    server.accept_client();
+
+    Start_State state;
+    std::string auth = state.create_auth_message("dog", "test_name", "test_secret");
+    client.tcp_send(auth);
+
+    std::string buffer = server.receive_message();
+
+    REQUIRE(buffer == "AUTH dog AS test_name USING test_secret\r\n");
+
+    // Since State is an unique pointer in fsm I can't use get function to access the fsm state therefore i simulate the change by creating a new state and using the process_response function on it. I am sure there is a better way to do this but this works too.
+    Auth_State auth_state;
+
+    server.send_message("REPLY OK IS Authentication successful\r\n");
+
+    // redirect stdout
+    std::stringstream output_capture;
+    auto* old_buf = std::cout.rdbuf(output_capture.rdbuf());
+
+    std::string response = client.tcp_receive();
+    auth_state.process_response(fsm, response);
+
+    Open_State open_state;
+    std::string message = open_state.create_join_message("dog", "channel_for_cats");
+    client.tcp_send(message);
+
+    buffer = server.receive_message();
+    REQUIRE(buffer == "JOIN channel_for_cats AS dog\r\n");
+
+    server.send_message("ERR FROM SERVER IS Cat identifier returned error\r\n");
+    response = client.tcp_receive();
+    open_state.process_response(fsm, response);
+
+    std::string output = output_capture.str();
+    REQUIRE(output == "Action Success: Authentication successful\nERROR FROM SERVER: Cat identifier returned error\n");
+
+    // restore stdout
+    std::cout.rdbuf(old_buf);
 }
