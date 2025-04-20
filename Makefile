@@ -1,6 +1,6 @@
 CXX = g++
 # Stderr logging can be enabled with submission so i will leave the -DDEBUG_PRINT
-CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic -I src -lpcap -g -DDEBUG_PRINT
+CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic -I src -g -DDEBUG_PRINT
 SRC_DIR := src
 OBJ_DIR := obj
 TEST_DIR := tests
