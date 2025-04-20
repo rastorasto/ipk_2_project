@@ -34,7 +34,7 @@ The functionality of this program is to receive and send messages with server. T
 ## Theory of Operation
 The program uses IPK25-CHAT protocol that is implemented on top of TCP or UDP.
 
-TCP or Transmission Control Protocol provides reliable and ordered delivery of a stream between applications.[1]
+TCP or Transmission Control Protocol provides reliable and ordered delivery of a stream between applications. [1]
 
 UDP or User Datagram Protocol is a connectionless protocol which means it does not keep track of what was sent. This can be handled by sending confirmations that the message was received.[2]
 
@@ -286,7 +286,7 @@ After this i used the command to quit.
 ```
 > The quiting can also be done using Ctrl+C or Ctrl+D which is end of client input. In this example i used the command /bye, that will be mentioned in Extra Functionality.
 
-![Wireshark Screenshot](images/wireshark_observation.png)
+![Wireshark Screenshot](images/wireshark.png)
 
 ---
 
@@ -316,12 +316,12 @@ There is `/bye` command available that user can use in any state that will quit 
 
 ## Bibliography
 
-[1]: **Transmission Control Protocol**, Available: https://en.wikipedia.org/wiki/Transmission_Control_Protocol
+[1]: [Transmission Control Protocol], Available: https://en.wikipedia.org/wiki/Transmission_Control_Protocol
 
-[2]: **User Datagram Protocol**, Available: https://en.wikipedia.org/wiki/User_Datagram_Protocol
+[2]: [User Datagram Protocol], Available: https://en.wikipedia.org/wiki/User_Datagram_Protocol
 
-[3]: **RFC147 - The Definition of a Socket**, Available: https://www.rfc-editor.org/rfc/rfc147
+[3]: [RFC147 - The Definition of a Socket], Available: https://www.rfc-editor.org/rfc/rfc147
 
-[4]: **Josh Lospinoso, C++ Crash Course**, Chapter 10 Testing - Unit-Testing and Mocking Frameworks
+[4]: [Josh Lospinoso, C++ Crash Course], Chapter 10 Testing - Unit-Testing and Mocking Frameworks
 
-[5]: **IPK Project 2: Client for a chat server using the IPK25-CHAT protocol**, Macro, Available: https://git.fit.vutbr.cz/NESFIT/IPK-Projects/src/branch/master/Project_2#example-of-client-logging-in-c
+[5]: [IPK Project 2: Client for a chat server using the IPK25-CHAT protocol], Macro, Available: https://git.fit.vutbr.cz/NESFIT/IPK-Projects/src/branch/master/Project_2#example-of-client-logging-in-c
