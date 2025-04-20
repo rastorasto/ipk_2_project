@@ -266,7 +266,7 @@ TEST_CASE("Received message in Auth_State", "[tcp_client]");
 TEST_CASE("Received message from server missing \r\n", "[tcp_client]");
 TEST_CASE("Received message in 2 segments", "[tcp_client]");
 TEST_CASE("Authenticated Join", "[tcp_client]");
-TEST_CASE("Malformed join reply", "[tcp_client]");
+TEST_CASE("Segmented join reply", "[tcp_client]");
 TEST_CASE("Authenticated Join Error", "[tcp_client]");
 ```
 ---
@@ -275,7 +275,7 @@ TEST_CASE("Authenticated Join Error", "[tcp_client]");
 In the screenshot below is a conversation captured in Wireshark. Showing that the program handles commands correctly and sends bye message when the user quits.
 ```
 Firstly i wrote a command to authenticate the user
-/auth xuhliar00 <seceret> Docs_test
+/auth xuhliar00 <seceret> Docs_Test
 After this i wrote a message
 Hello
 Then i joined channel discord.test and send message

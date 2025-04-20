@@ -546,7 +546,7 @@ TEST_CASE("Authenticated Join", "[tcp_client]") {
     std::cout.rdbuf(old_buf);
 }
 
-TEST_CASE("Malformed join reply", "[tcp_client]") {
+TEST_CASE("Segmented join reply", "[tcp_client]") {
     Server server(4567);
 
     tcp_client client("127.0.0.1", 4567);
