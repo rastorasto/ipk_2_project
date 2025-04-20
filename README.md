@@ -95,6 +95,17 @@ Bye message from the client is sent in the tcp_client destructor which happens a
 ## Testing
 ### Test environment
 
+I tested the program in virtual environment on macOS using UTM.
+Here are the full details:
+
+| Component       | Version/Specification                                  |
+|-----------------|-------------------------------------------------------|
+| OS              | Ubuntu (kernel: `5.15.0-136-generic`)                 |
+| Architecture    | `aarch64` (ARM 64-bit)                                |
+| Compiler        |  GCC 11.4.0               |
+| Application | Wireshark 3.6.2 |
+
+
 ### Unit Tests
 The program was testing with Catch Unit Testing Framework. I decided to use catch because it needs just a single header file to work. Also i read about it in *C++ Crash Course* [4](#ref4) and decided to give it a try. The code snippets would be too long so some parts are replaced with `...` the full code can be found in tests directory.
 
@@ -272,7 +283,7 @@ TEST_CASE("Authenticated Join Error", "[tcp_client]");
 ---
 
 ### Wireshark observation
-In the screenshot below is a conversation captured in Wireshark. Showing that the program handles commands correctly and sends bye message when the user quits.
+In the screenshot below is a conversation captured in Wireshark with the reference server `anton5.fit.vutbr.cz`. It shows that the program handles commands correctly and sends bye message when the user quits.
 ```
 Firstly i wrote a command to authenticate the user
 /auth xuhliar00 <seceret> Docs_Test
