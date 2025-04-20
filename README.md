@@ -34,11 +34,11 @@ The functionality of this program is to receive and send messages with server. T
 ## Theory of Operation
 The program uses IPK25-CHAT protocol that is implemented on top of TCP or UDP.
 
-TCP or Transmission Control Protocol provides reliable and ordered delivery of a stream between applications. [1]
+TCP or Transmission Control Protocol provides reliable and ordered delivery of a stream between applications. [1](#ref1)
 
-UDP or User Datagram Protocol is a connectionless protocol which means it does not keep track of what was sent. This can be handled by sending confirmations that the message was received.[2]
+UDP or User Datagram Protocol is a connectionless protocol which means it does not keep track of what was sent. This can be handled by sending confirmations that the message was received. [2](#ref2)
 
-Socket is an unique identifier for transmitting information in a network. The socket is specified as number with even numbers identifying receiving sockets and odd numbers identifying sending sockets. It is also identified by the host and port number. In any case, communication over the network is from one socket to another socket. [3]
+Socket is an unique identifier for transmitting information in a network. The socket is specified as number with even numbers identifying receiving sockets and odd numbers identifying sending sockets. It is also identified by the host and port number. In any case, communication over the network is from one socket to another socket. [3](#ref3)
 
 ---
 
@@ -73,7 +73,7 @@ tree
     └── tests.cpp # Unit Tests
 ```
 
->macro.hpp [5]
+>macro.hpp [5](#ref5)
 
 ### How it works
 After starting the program is parses the arguments and resolves the server address. This information in saved in arguments structure.
@@ -96,7 +96,7 @@ Bye message from the client is sent in the tcp_client destructor which happens a
 ### Test environment
 
 ### Unit Tests
-The program was testing with Catch Unit Testing Framework. I decided to use catch because it needs just a single header file to work. Also i read about it in *C++ Crash Course*[4] and decided to give it a try. The code snippets would be too long so some parts are replaced with `...` the full code can be found in tests directory.
+The program was testing with Catch Unit Testing Framework. I decided to use catch because it needs just a single header file to work. Also i read about it in *C++ Crash Course* [4](#ref4) and decided to give it a try. The code snippets would be too long so some parts are replaced with `...` the full code can be found in tests directory.
 
 ### What was tested
 
@@ -248,26 +248,26 @@ TEST_CASE("Received message in 2 segments", "[tcp_client]") {
 
 ### List of all unit tests
 ```c++
-TEST_CASE("Default arguments values", "[cli]")
-TEST_CASE("Custom arguments TCP", "[cli]")
-TEST_CASE("Custom arguments UDP", "[cli]")
-TEST_CASE("Required arguments not provided", "[cli]")
-TEST_CASE("Create message", "[fsm]")
-TEST_CASE("Message is shortened if its longer than max length", "[fsm]")
-TEST_CASE("Create auth message", "[fsm]")
-TEST_CASE("Create join message", "[fsm]")
-TEST_CASE("Authentication with OK Reply", "[tcp_client]")
-TEST_CASE("Authentication with NOK Reply", "[tcp_client]")
-TEST_CASE("Error in Start_State", "[tcp_client]")
-TEST_CASE("Bye in Start_State", "[tcp_client]")
-TEST_CASE("Authenticated Message send and receive", "[tcp_client]")
-TEST_CASE("Grammar insensitivity", "[tcp_client]")
-TEST_CASE("Received message in Auth_State", "[tcp_client]")
-TEST_CASE("Received message from server missing \r\n", "[tcp_client]")
-TEST_CASE("Received message in 2 segments", "[tcp_client]")
-TEST_CASE("Authenticated Join", "[tcp_client]")
-TEST_CASE("Malformed join reply", "[tcp_client]")
-TEST_CASE("Authenticated Join Error", "[tcp_client]")
+TEST_CASE("Default arguments values", "[cli]");
+TEST_CASE("Custom arguments TCP", "[cli]");
+TEST_CASE("Custom arguments UDP", "[cli]");
+TEST_CASE("Required arguments not provided", "[cli]");
+TEST_CASE("Create message", "[fsm]");
+TEST_CASE("Message is shortened if its longer than max length", "[fsm]");
+TEST_CASE("Create auth message", "[fsm]");
+TEST_CASE("Create join message", "[fsm]");
+TEST_CASE("Authentication with OK Reply", "[tcp_client]");
+TEST_CASE("Authentication with NOK Reply", "[tcp_client]");
+TEST_CASE("Error in Start_State", "[tcp_client]");
+TEST_CASE("Bye in Start_State", "[tcp_client]");
+TEST_CASE("Authenticated Message send and receive", "[tcp_client]");
+TEST_CASE("Grammar insensitivity", "[tcp_client]");
+TEST_CASE("Received message in Auth_State", "[tcp_client]");
+TEST_CASE("Received message from server missing \r\n", "[tcp_client]");
+TEST_CASE("Received message in 2 segments", "[tcp_client]");
+TEST_CASE("Authenticated Join", "[tcp_client]");
+TEST_CASE("Malformed join reply", "[tcp_client]");
+TEST_CASE("Authenticated Join Error", "[tcp_client]");
 ```
 ---
 
@@ -316,12 +316,12 @@ There is `/bye` command available that user can use in any state that will quit 
 
 ## Bibliography
 
-[1]: [Transmission Control Protocol], Available: https://en.wikipedia.org/wiki/Transmission_Control_Protocol
+<a id="ref1"></a> [1]: [Transmission Control Protocol], Available: https://en.wikipedia.org/wiki/Transmission_Control_Protocol
 
-[2]: [User Datagram Protocol], Available: https://en.wikipedia.org/wiki/User_Datagram_Protocol
+<a id="ref2"></a> [2]: [User Datagram Protocol], Available: https://en.wikipedia.org/wiki/User_Datagram_Protocol
 
-[3]: [RFC147 - The Definition of a Socket], Available: https://www.rfc-editor.org/rfc/rfc147
+<a id="ref3"></a> [3]: [RFC147 - The Definition of a Socket], Available: https://www.rfc-editor.org/rfc/rfc147
 
-[4]: [Josh Lospinoso, C++ Crash Course], Chapter 10 Testing - Unit-Testing and Mocking Frameworks
+<a id="ref4"></a> [4]: [Josh Lospinoso, C++ Crash Course], Chapter 10 Testing - Unit-Testing and Mocking Frameworks
 
-[5]: [IPK Project 2: Client for a chat server using the IPK25-CHAT protocol], Macro, Available: https://git.fit.vutbr.cz/NESFIT/IPK-Projects/src/branch/master/Project_2#example-of-client-logging-in-c
+<a id="ref5"></a> [5]: [IPK Project 2: Client for a chat server using the IPK25-CHAT protocol], Macro, Available: https://git.fit.vutbr.cz/NESFIT/IPK-Projects/src/branch/master/Project_2#example-of-client-logging-in-c
