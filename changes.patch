@@ -1,0 +1,22 @@
+diff --color -ruN xuhliar00/src/arguments.hpp patched/src/arguments.hpp
+--- xuhliar00/src/arguments.hpp	2025-04-15 06:38:29
++++ patched/src/arguments.hpp	2025-05-01 21:32:26
+@@ -1,6 +1,7 @@
+ #pragma once
+ 
+ #include <iostream>
++#include <cstdint>
+ 
+ struct arguments {
+     std::string transport_protocol;
+diff --color -ruN xuhliar00/src/fsm.hpp patched/src/fsm.hpp
+--- xuhliar00/src/fsm.hpp	2025-04-20 19:32:53
++++ patched/src/fsm.hpp	2025-05-01 21:32:39
+@@ -1,6 +1,7 @@
+ #pragma once
+ #include <iostream>
+ #include <memory>
++#include <algorithm>
+ 
+ #include "tcpclient.hpp"
+ 
